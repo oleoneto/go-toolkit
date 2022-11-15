@@ -76,6 +76,10 @@ func (L *Logger) Log(content any, w io.Writer, template string) {
 		b, _ := client.Formatter.FormatWithContext(ctx, content)
 		client.Print(string(b))
 		return
+	} else if L.format == PLAINTEXT {
+		if v, ok := content.(Formattable); ok {
+			content = v.String()
+		}
 	}
 
 	client.SetWriter(w)
