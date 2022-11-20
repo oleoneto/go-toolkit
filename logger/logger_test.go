@@ -2,8 +2,10 @@ package logger
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/drewstinnett/go-output-format/v2/gout"
@@ -11,19 +13,30 @@ import (
 )
 
 type (
-	S struct{ Value string }
+	R struct {
+		FirstName string `json:"first_name,omitempty" yaml:"first_name,omitempty"`
+		LastName  string `json:"last_name,omitempty" yaml:"last_name,omitempty"`
+	}
+
+	S struct {
+		Value string `json:"value" yaml:"value"`
+	}
 )
+
+func (r *R) Formatted() string {
+	return fmt.Sprintf(`%v, %v`, r.LastName, strings.Split(r.FirstName, "")[0])
+}
 
 func TestNewDefaultLogger(t *testing.T) {
 	client.SetFormatter(gout.BuiltInFormatters[PLAINTEXT])
 
 	tests := []struct {
 		name string
-		want Logger
+		want *Logger
 	}{
 		{
 			name: "new logger - 1",
-			want: Logger{
+			want: &Logger{
 				paused:      false,
 				pendingLogs: types.Queue{},
 				format:      PLAINTEXT,
@@ -66,10 +79,10 @@ func TestLogger_Log(t *testing.T) {
 				format:      PLAINTEXT,
 			},
 			args: args{
-				content:  S{Value: "Hey!"},
+				content:  &R{FirstName: "Leonardo", LastName: "Ribeiro"},
 				template: ``,
 			},
-			wantW: "Hey!",
+			wantW: "Ribeiro, L\n",
 		},
 		{
 			name: "format - json",
@@ -79,10 +92,10 @@ func TestLogger_Log(t *testing.T) {
 				format:      JSON,
 			},
 			args: args{
-				content:  S{Value: "Hey!"},
+				content:  R{FirstName: "Leonardo", LastName: "Ribeiro"},
 				template: ``,
 			},
-			wantW: `{"Value": "Hey!"}`,
+			wantW: "{FirstName:Leonardo LastName:Ribeiro}\n",
 		},
 		{
 			name: "format - yaml",
@@ -92,10 +105,10 @@ func TestLogger_Log(t *testing.T) {
 				format:      YAML,
 			},
 			args: args{
-				content:  S{Value: "Hey!"},
+				content:  R{FirstName: "Leonardo", LastName: "Ribeiro"},
 				template: ``,
 			},
-			wantW: `Value: "Hey!"`,
+			wantW: "{FirstName:Leonardo LastName:Ribeiro}\n",
 		},
 		{
 			name: "format - toml",
@@ -105,23 +118,23 @@ func TestLogger_Log(t *testing.T) {
 				format:      TOML,
 			},
 			args: args{
-				content:  S{Value: "Hey!"},
+				content:  R{FirstName: "Leonardo", LastName: "Ribeiro"},
 				template: ``,
 			},
-			wantW: `"Value" = "Hey!"`,
+			wantW: "{FirstName:Leonardo LastName:Ribeiro}\n",
 		},
 		{
-			name: "format - gotemplate",
+			name: "format - gotemplate - 1",
 			fields: fields{
 				paused:      false,
 				pendingLogs: types.Queue{},
 				format:      GOTEMPLATE,
 			},
 			args: args{
-				content:  S{Value: "Hey!"},
+				content:  &R{FirstName: "Leonardo", LastName: "Ribeiro"},
 				template: `{{.Name}}`,
 			},
-			wantW: `\n`,
+			wantW: ``,
 		},
 		{
 			name: "paused",
@@ -130,10 +143,10 @@ func TestLogger_Log(t *testing.T) {
 				pendingLogs: types.Queue{},
 			},
 			args: args{
-				content:  S{Value: "Hey!"},
+				content:  &R{FirstName: "Leonardo", LastName: "Ribeiro"},
 				template: ``,
 			},
-			wantW: "\n",
+			wantW: "",
 		},
 	}
 
@@ -147,7 +160,7 @@ func TestLogger_Log(t *testing.T) {
 			w := &bytes.Buffer{}
 			L.Log(tt.args.content, w, tt.args.template)
 
-			if gotW := w.String(); reflect.DeepEqual(gotW, tt.wantW) {
+			if gotW := w.String(); !reflect.DeepEqual(gotW, tt.wantW) {
 				t.Errorf("Logger.Log() = %v, want %v.", gotW, tt.wantW)
 			}
 		})

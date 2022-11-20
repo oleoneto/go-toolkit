@@ -11,7 +11,11 @@ import (
 
 type (
 	Formattable interface {
-		String() string
+		Formatted() string
+	}
+
+	LogWriter interface {
+		Log(content any, w io.Writer, template string)
 	}
 
 	Log struct {
@@ -48,17 +52,17 @@ func init() {
 	client.SetFormatter(gout.BuiltInFormatters[PLAINTEXT])
 }
 
-func NewLogger(options LoggerOptions) Logger {
+func NewLogger(options LoggerOptions) *Logger {
 	client.SetFormatter(gout.BuiltInFormatters[options.Format])
 
-	return Logger{
+	return &Logger{
 		paused:      options.DelayLogging,
 		format:      options.Format,
 		pendingLogs: types.NewQueue(),
 	}
 }
 
-func NewDefaultLogger() Logger {
+func NewDefaultLogger() *Logger {
 	return NewLogger(LoggerOptions{
 		DelayLogging: false,
 		Format:       PLAINTEXT,
@@ -78,7 +82,7 @@ func (L *Logger) Log(content any, w io.Writer, template string) {
 		return
 	} else if L.format == PLAINTEXT {
 		if v, ok := content.(Formattable); ok {
-			content = v.String()
+			content = v.Formatted()
 		}
 	}
 
