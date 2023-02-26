@@ -1,5 +1,5 @@
 GOBIN := $(GOPATH)/bin
-TARGET_FILE = go-toorist
+TARGET_FILE = go-toolkit
 
 clean:
 	rm -rf $(TARGET_FILE)
@@ -21,4 +21,3 @@ build: build-deps
 install: build
 	@go env -w GOBIN=$(GOBIN)
 	@go install
-	rm $(TARGET_FILE)
