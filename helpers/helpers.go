@@ -80,5 +80,5 @@ func UnwrapPointer[T any](data *T, fallback T) T {
 		return *data
 	}
 
-	return *fallback
+	return fallback
 }
