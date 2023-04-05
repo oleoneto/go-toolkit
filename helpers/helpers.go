@@ -70,3 +70,15 @@ func PointerElement(rv reflect.Value) (reflect.Value, error) {
 
 	return el, nil
 }
+
+// MARK: Pointers
+
+func PointTo[T any](data T) *T { return &data }
+
+func UnwrapPointer[T any](data *T, fallback T) T {
+	if data != nil {
+		return *data
+	}
+
+	return *fallback
+}
