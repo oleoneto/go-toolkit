@@ -1,5 +1,5 @@
 GOBIN := $(GOPATH)/bin
-TARGET_FILE = toolkit
+TARGET_FILE = go-toolkit
 
 clean:
 	rm -rf $(TARGET_FILE)
@@ -17,3 +17,7 @@ test: clean-test
 
 build: build-deps
 	@go build -o $(TARGET_FILE)
+
+install: build
+	@go env -w GOBIN=$(GOBIN)
+	@go install
