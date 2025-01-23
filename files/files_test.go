@@ -1,6 +1,7 @@
 package files
 
 import (
+	"io/fs"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ func TestFile_Create(t *testing.T) {
 		{
 			name:      "create - directory with no children - dry",
 			directory: NewDirectory("project-101", []File{}...),
-			generator: NullFileGenerator{},
+			generator: &NullFileGenerator{},
 		},
 		{
 			name: "create - directory with files - dry",
@@ -24,7 +25,7 @@ func TestFile_Create(t *testing.T) {
 					{Name: "package.lock"},
 				}...,
 			),
-			generator: NullFileGenerator{},
+			generator: &NullFileGenerator{},
 		},
 		{
 			name: "create - directory with directories - dry - 1",
@@ -37,7 +38,7 @@ func TestFile_Create(t *testing.T) {
 						Files:       []File{{Name: "index.js"}}},
 				}...,
 			),
-			generator: NullFileGenerator{},
+			generator: &NullFileGenerator{},
 		},
 		{
 			name: "create - directory with directories - dry - 2",
@@ -75,7 +76,7 @@ func TestFile_Create(t *testing.T) {
 					},
 				}...,
 			),
-			generator: NullFileGenerator{},
+			generator: &NullFileGenerator{},
 		},
 		{
 			name: "create - directory with files",
@@ -258,7 +259,7 @@ func TestFile_Remove(t *testing.T) {
 			name: "remove - empty directory",
 			data: NewDirectory("project-101"),
 			args: args{
-				remover: NullFileGenerator{},
+				remover: &NullFileGenerator{},
 			},
 			wantErr: false,
 		},
@@ -266,7 +267,7 @@ func TestFile_Remove(t *testing.T) {
 			name: "remove - file",
 			data: File{Name: "index.js"},
 			args: args{
-				remover: NullFileGenerator{},
+				remover: &NullFileGenerator{},
 			},
 			wantErr: false,
 		},
@@ -294,7 +295,7 @@ func TestGenerator_ReadFile(t *testing.T) {
 	}{
 		{
 			name:      "readfile - dry - 1",
-			generator: NullFileGenerator{},
+			generator: &NullFileGenerator{},
 			args: args{
 				filepath: "../LICENSE",
 			},
@@ -339,7 +340,7 @@ func TestGenerator_ReadDir(t *testing.T) {
 	}{
 		{
 			name:      "readdir - dry",
-			generator: NullFileGenerator{},
+			generator: &NullFileGenerator{},
 			args: args{
 				path: "/tmp",
 			},
@@ -369,4 +370,24 @@ func TestGenerator_ReadDir(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TODO: Add file generator tests
+
+type NullFileGenerator struct{ Error error }
+
+func (g NullFileGenerator) WriteFile(name string, data []byte, perm fs.FileMode) error {
+	return g.Error
+}
+
+func (g *NullFileGenerator) MkdirAll(path string, perm fs.FileMode) error { return g.Error }
+
+func (g *NullFileGenerator) Remove(name string) error { return g.Error }
+
+func (g *NullFileGenerator) RemoveAll(pathname string) error { return g.Error }
+
+func (g *NullFileGenerator) ReadFile(name string) ([]byte, error) { return []byte{}, g.Error }
+
+func (g *NullFileGenerator) ReadDir(name string) ([]fs.DirEntry, error) {
+	return []fs.DirEntry{}, g.Error
 }

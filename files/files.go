@@ -2,14 +2,12 @@ package files
 
 import (
 	"context"
-	"fmt"
-	"io"
 	"io/fs"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/oleoneto/go-toolkit/logger"
+	log "github.com/sirupsen/logrus"
 )
 
 const DEFAULT_DIR_PERMISSION fs.FileMode = 0755
@@ -40,13 +38,11 @@ type (
 	Writer interface {
 		DirectoryWriter
 		FileWriter
-		logger.LogWriter
 	}
 
 	Remover interface {
 		FileRemover
 		DirectoryRemover
-		logger.LogWriter
 	}
 
 	Generator interface {
@@ -71,17 +67,13 @@ type (
 	}
 
 	FileGenerator struct{}
-
-	NullFileGenerator struct{}
 )
 
 // ......................................
 // ......................................
 // ......................................
 
-func (F *File) Formatted() string {
-	return F.Name
-}
+func (F *File) Formatted() string { return F.Name }
 
 func NewDirectory(name string, files ...File) File {
 	return File{
@@ -91,12 +83,12 @@ func NewDirectory(name string, files ...File) File {
 	}
 }
 
-func (F *File) Create(writer Writer, path ...string) (res []string) {
-	name := strings.Join(append(path, F.Name), "/")
+func (f *File) Create(writer Writer, path ...string) (res []string) {
+	name := strings.Join(append(path, f.Name), "/")
 
-	if !F.IsDirectory {
-		writer.WriteFile(name, []byte(F.Content), DEFAULT_FILE_PERMISSION)
-		res = append(res, F.Name)
+	if !f.IsDirectory {
+		writer.WriteFile(name, []byte(f.Content), DEFAULT_FILE_PERMISSION)
+		res = append(res, f.Name)
 	} else {
 		_, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
 		defer cancel()
@@ -104,33 +96,28 @@ func (F *File) Create(writer Writer, path ...string) (res []string) {
 		writer.MkdirAll(name, DEFAULT_DIR_PERMISSION)
 		res = append(res, name)
 
-		for _, file := range F.Files {
-			res = append(res, file.Create(writer, append(path, F.Name)...)...)
+		for _, file := range f.Files {
+			res = append(res, file.Create(writer, append(path, f.Name)...)...)
 		}
 	}
 
 	return res
 }
 
-func (F *File) Remove(remover Remover) error {
-	if F.IsDirectory {
-		return remover.RemoveAll(F.Name)
+func (f *File) Remove(remover Remover) error {
+	if f.IsDirectory {
+		return remover.RemoveAll(f.Name)
 	}
-
-	return remover.Remove(F.Name)
+	return remover.Remove(f.Name)
 }
 
-func (F *File) AddFiles(files ...File) {
-	F.Files = append(F.Files, files...)
-}
+func (f *File) AddFiles(files ...File) { f.Files = append(f.Files, files...) }
 
-func (F *File) Count() (count int) {
-	count += len(F.Files)
-
-	for _, dir := range F.Files {
+func (f *File) Count() (count int) {
+	count += len(f.Files)
+	for _, dir := range f.Files {
 		count += dir.Count()
 	}
-
 	return count
 }
 
@@ -138,70 +125,26 @@ func (F *File) Count() (count int) {
 // ......................................
 // ......................................
 
-func (FileGenerator) Log(content any, w io.Writer, template string) {
-	logger.NewDefaultLogger().Log(content, w, template)
-}
-
-func (G FileGenerator) WriteFile(name string, data []byte, perm fs.FileMode) error {
-	G.Log(fmt.Sprintf(`Creating file %v`, name), os.Stdout, "")
+func (fg FileGenerator) WriteFile(name string, data []byte, perm fs.FileMode) error {
+	log.Debug("Creating file", name)
 	return os.WriteFile(name, data, perm)
 }
 
-func (G FileGenerator) MkdirAll(path string, perm fs.FileMode) error {
-	G.Log(fmt.Sprintf(`Creating directory %v`, path), os.Stdout, "")
+func (fg FileGenerator) MkdirAll(path string, perm fs.FileMode) error {
+	log.Debug("Creating directory", path)
 	return os.MkdirAll(path, perm)
 }
 
-func (G FileGenerator) Remove(name string) error {
-	G.Log(fmt.Sprintf(`Removing %v`, name), os.Stdout, "")
+func (fg FileGenerator) Remove(name string) error {
+	log.Debug("Removing", name)
 	return os.Remove(name)
 }
 
-func (G FileGenerator) RemoveAll(pathname string) error {
-	G.Log(fmt.Sprintf(`Removing %v`, pathname), os.Stdout, "")
+func (fg FileGenerator) RemoveAll(pathname string) error {
+	log.Debug("Removing", pathname)
 	return os.RemoveAll(pathname)
 }
 
-func (FileGenerator) ReadFile(name string) ([]byte, error) {
-	return os.ReadFile(name)
-}
+func (FileGenerator) ReadFile(name string) ([]byte, error) { return os.ReadFile(name) }
 
-func (FileGenerator) ReadDir(name string) ([]fs.DirEntry, error) {
-	return os.ReadDir(name)
-}
-
-// ......................................
-// ......................................
-// ......................................
-
-func (NullFileGenerator) Log(content any, w io.Writer, template string) {
-	logger.NewDefaultLogger().Log(content, w, template)
-}
-
-func (G NullFileGenerator) WriteFile(name string, data []byte, perm fs.FileMode) error {
-	G.Log(fmt.Sprintf(`Creating file %v`, name), os.Stdout, "")
-	return nil
-}
-
-func (G NullFileGenerator) MkdirAll(path string, perm fs.FileMode) error {
-	G.Log(fmt.Sprintf(`Creating directory %v`, path), os.Stdout, "")
-	return nil
-}
-
-func (G NullFileGenerator) Remove(name string) error {
-	G.Log(fmt.Sprintf(`Removing %v`, name), os.Stdout, "")
-	return nil
-}
-
-func (G NullFileGenerator) RemoveAll(pathname string) error {
-	G.Log(fmt.Sprintf(`Removing %v`, pathname), os.Stdout, "")
-	return nil
-}
-
-func (NullFileGenerator) ReadFile(name string) ([]byte, error) {
-	return []byte{}, nil
-}
-
-func (NullFileGenerator) ReadDir(name string) ([]fs.DirEntry, error) {
-	return []fs.DirEntry{}, nil
-}
+func (FileGenerator) ReadDir(name string) ([]fs.DirEntry, error) { return os.ReadDir(name) }

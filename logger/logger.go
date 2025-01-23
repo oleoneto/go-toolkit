@@ -1,3 +1,4 @@
+// Deprecated: this package is frozen. Users should switch to another logging solution.
 package logger
 
 import (

@@ -1,34 +1,81 @@
-package helpers
+package helpers_test
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/oleoneto/go-toolkit/helpers"
 )
 
-func stringPointer(v string) *string {
-	return &v
-}
-
-// MARK: Collection Helpers
-
-func Test_Contains(t *testing.T) {
+func TestContains(t *testing.T) {
 	collection := []string{"something", "else", "any", "thing"}
 
 	key := "any"
-	if !Contains(collection, key) {
+	if !helpers.Contains(collection, key) {
 		t.Errorf(`expected %v to be in collection`, key)
 	}
 
 	keys := []string{"test", "art", "think"}
 	for _, key := range keys {
-		ok := Contains(collection, key)
+		ok := helpers.Contains(collection, key)
 		if ok {
 			t.Errorf(`expected %v to not be in collection`, key)
 		}
 	}
 }
 
-func Test_Map(t *testing.T) {
+func TestContainsDuplicate(t *testing.T) {
+	type test struct {
+		name        string
+		input       []any
+		expectation bool
+	}
+
+	tests := []test{
+		{
+			name:        "t - 1",
+			input:       []any{1, 2, 3, 1},
+			expectation: true,
+		},
+		{
+			name:        "t - 2",
+			input:       []any{1, 2, 3, 4},
+			expectation: false,
+		},
+		{
+			name:        "t - 3",
+			input:       []any{1, 2, 1, 1},
+			expectation: true,
+		},
+		{
+			name:        "t - 4",
+			input:       []any{1, 1, 1, 3, 3, 4, 3, 2, 4, 2},
+			expectation: true,
+		},
+		{
+			name:        "t - 5",
+			input:       []any{1, 3, 4, 5, 2, 3},
+			expectation: true,
+		},
+		{
+			name:        "t - 6",
+			input:       []any{1, "x", 4, 5, 2, "x"},
+			expectation: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual := helpers.ContainsDuplicate(test.input)
+
+			if actual != test.expectation {
+				t.Errorf("expected %v but got %v", test.expectation, actual)
+			}
+		})
+	}
+}
+
+func TestMap(t *testing.T) {
 	type args struct {
 		collection    []int
 		transformFunc func(int, int) int
@@ -72,14 +119,14 @@ func Test_Map(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Map(tt.args.collection, tt.args.transformFunc); !reflect.DeepEqual(got, tt.want) {
+			if got := helpers.Map(tt.args.collection, tt.args.transformFunc); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Map() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func Test_Filter(t *testing.T) {
+func TestFilter(t *testing.T) {
 	type args struct {
 		collection    []int
 		inclusionTest func(int, int) bool
@@ -126,29 +173,46 @@ func Test_Filter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Filter(tt.args.collection, tt.args.inclusionTest); !reflect.DeepEqual(got, tt.want) {
+			if got := helpers.Filter(tt.args.collection, tt.args.inclusionTest); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Filter() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-// MARK: Reflection Helpers
-
-func Test_PointerElement(t *testing.T) {
-	var value *string = stringPointer("something")
-	_, err := PointerElement(reflect.ValueOf(value))
-
-	if err != nil {
-		t.Errorf(`expected error to be nil, but got %v`, err)
+func TestReduce(t *testing.T) {
+	type args[T any] struct {
+		c            []T
+		counter      func(int, T) float64
+		initialCount float64
 	}
-}
 
-func Test_PointerElement_WhenNil(t *testing.T) {
-	var value *string
-	_, err := PointerElement(reflect.ValueOf(value))
+	type testCase[T any] struct {
+		name string
+		args args[T]
+		want float64
+	}
 
-	if err == nil {
-		t.Errorf(`expected an error but got nil`)
+	tests := []testCase[float64]{
+		{
+			name: "test - 1",
+			args: args[float64]{
+				c:       []float64{25.99, 4.01},
+				counter: func(i int, n float64) float64 { return n },
+			},
+			want: 30,
+		},
+		//{
+		//	name: "test - 2",
+		//	args: args[string]{},
+		//},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := helpers.Reduce(tt.args.c, tt.args.counter, tt.args.initialCount); got != tt.want {
+				t.Errorf("Reduce() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
