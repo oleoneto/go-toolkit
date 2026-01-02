@@ -539,61 +539,61 @@ func Test_PassesRegex(t *testing.T) {
 		str     string
 	}
 	tests := []struct {
-		name string
-		args args
-		want bool
+		name   string
+		args   args
+		passes bool
 	}{
 		{
-			name: "numeric - 0",
-			want: false,
+			name:   "numeric - 0",
+			passes: false,
 			args: args{
 				pattern: `\d+`,
 				str:     "leonardo",
 			},
 		},
 		{
-			name: "numeric - 1",
-			want: true,
+			name:   "numeric - 1",
+			passes: true,
 			args: args{
 				pattern: `\d+`,
 				str:     "299",
 			},
 		},
 		{
-			name: "numeric - 2",
-			want: true,
+			name:   "numeric - 2",
+			passes: true,
 			args: args{
 				pattern: `\d{3}$`,
 				str:     "299",
 			},
 		},
 		{
-			name: "numeric - 3",
-			want: false,
+			name:   "numeric - 3",
+			passes: false,
 			args: args{
 				pattern: `^\d{2}$`,
 				str:     "299",
 			},
 		},
 		{
-			name: "US phone number - 1",
-			want: false,
+			name:   "US phone number - 1",
+			passes: false,
 			args: args{
 				pattern: `^\d{3}-\d{3}-\d{4}$`,
 				str:     "55-5-5555-5555",
 			},
 		},
 		{
-			name: "US phone number - 2",
-			want: true,
+			name:   "US phone number - 2",
+			passes: true,
 			args: args{
 				pattern: `^\d{3}-\d{3}-\d{4}$`,
 				str:     "555-555-5555",
 			},
 		},
 		{
-			name: "invalid - 1",
-			want: false,
+			name:   "invalid - 1",
+			passes: false,
 			args: args{
 				pattern: `/\`,
 				str:     "#FBA",
@@ -603,8 +603,8 @@ func Test_PassesRegex(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := validator.PassesRegex(tt.args.pattern, tt.args.str); got != tt.want {
-				t.Errorf("PassesRegex() = %v, want %v", got, tt.want)
+			if got := validator.PassesRegex(tt.args.pattern, tt.args.str); got != tt.passes {
+				t.Errorf("PassesRegex() = %v, want %v", got, tt.passes)
 			}
 		})
 	}
