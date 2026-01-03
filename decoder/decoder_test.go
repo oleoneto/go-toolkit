@@ -101,8 +101,8 @@ func Test_Decode(t *testing.T) {
 				options: decoder.DecoderOptions{Rules: []decoder.SchemaValidationRule{decoder.INVALID_TYPE, decoder.REQUIRED_ATTRIBUTE}},
 			},
 			want: map[string][]string{
-				"id":   {"decoder.REQUIRED_ATTRIBUTE_MISSING"},
-				"name": {"decoder.REQUIRED_ATTRIBUTE_MISSING"},
+				"id":   {"REQUIRED_ATTRIBUTE_MISSING"},
+				"name": {"REQUIRED_ATTRIBUTE_MISSING"},
 			},
 		},
 		{
@@ -125,8 +125,8 @@ func Test_Decode(t *testing.T) {
 				options: decoder.DecoderOptions{Rules: []decoder.SchemaValidationRule{decoder.INVALID_TYPE, decoder.REQUIRED_ATTRIBUTE}},
 			},
 			want: map[string][]string{
-				"id":   {"decoder.REQUIRED_ATTRIBUTE_MISSING"},
-				"name": {"decoder.REQUIRED_ATTRIBUTE_MISSING"},
+				"id":   {"REQUIRED_ATTRIBUTE_MISSING"},
+				"name": {"REQUIRED_ATTRIBUTE_MISSING"},
 			},
 		},
 		{

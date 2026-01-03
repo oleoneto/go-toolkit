@@ -315,7 +315,7 @@ func Test_GetAllAttributes(t *testing.T) {
 	}
 }
 
-func TestGetAttributes_WithSpecificTags(t *testing.T) {
+func Test_GetAttributes_WithSpecificTags(t *testing.T) {
 	type Expectation struct {
 		Name       string
 		Model      any
@@ -387,7 +387,7 @@ func TestGetAttributes_WithSpecificTags(t *testing.T) {
 	}
 }
 
-func TestGetTagValues(t *testing.T) {
+func Test_GetTagValues(t *testing.T) {
 	var field reflect.StructField = reflect.StructField{
 		Tag: `json:"id,omitempty" db:"_id"`,
 	}
@@ -410,7 +410,7 @@ func TestGetTagValues(t *testing.T) {
 	}
 }
 
-func TestGetTag(t *testing.T) {
+func Test_GetTag(t *testing.T) {
 	var field reflect.StructField = reflect.StructField{
 		Tag: `json:"id,omitempty" db:"_id" validate:"min=1,max=255,required"`,
 	}
@@ -432,7 +432,7 @@ func TestGetTag(t *testing.T) {
 	}
 }
 
-func TestGetTags(t *testing.T) {
+func Test_GetTags(t *testing.T) {
 	var field reflect.StructField = reflect.StructField{
 		Tag: `json:"id,omitempty" db:"_id"`,
 	}
@@ -448,7 +448,7 @@ func TestGetTags(t *testing.T) {
 	}
 }
 
-func TestTagContainsValues(t *testing.T) {
+func Test_TagContainsValues(t *testing.T) {
 	type Expectation struct {
 		Name   string
 		Field  reflect.StructField
@@ -527,7 +527,7 @@ func TestTagContainsValues(t *testing.T) {
 	}
 }
 
-func TestMatchingFields(t *testing.T) {
+func Test_MatchingFields(t *testing.T) {
 	type Expectation struct {
 		Name   string
 		Model  any
@@ -619,7 +619,7 @@ func TestMatchingFields(t *testing.T) {
 	}
 }
 
-func TestSetValuesFromMap(t *testing.T) {
+func Test_SetValuesFromMap(t *testing.T) {
 	type args struct {
 		model  any
 		values map[string]any
@@ -667,7 +667,7 @@ func TestSetValuesFromMap(t *testing.T) {
 	}
 }
 
-func TestSetValuesFromBytes(t *testing.T) {
+func Test_SetValuesFromBytes(t *testing.T) {
 	type args struct {
 		model  any
 		values []byte
@@ -715,7 +715,7 @@ func TestSetValuesFromBytes(t *testing.T) {
 	}
 }
 
-func TestRemoveValuesFromTag(t *testing.T) {
+func Test_RemoveValuesFromTag(t *testing.T) {
 	type args struct {
 		tag        string
 		removeList []string

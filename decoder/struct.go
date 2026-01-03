@@ -4,16 +4,19 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/oleoneto/go-toolkit/helpers"
 )
 
 // This type abstracts both `reflect.Value` and `reflect.StructField` types.
 type StructAttribute struct {
 	Value        reflect.Value
 	Field        reflect.StructField
-	Parents      []StructAttribute
 	Children     []StructAttribute
 	ListPosition int
 	isPrimitive  bool
+
+	name *string
 }
 
 type NewStructAttributeFields struct {
@@ -26,7 +29,7 @@ type NewStructAttributeFields struct {
 
 type StructAttributes []StructAttribute
 
-// Returns the name of the field properly scoped under its parents.
+// Sets and returns the name of the field properly scoped under its parents.
 //
 // Usage:
 //
@@ -40,13 +43,14 @@ type StructAttributes []StructAttribute
 //		}
 //	}
 //
-//	sa.FullName() // -> "parentA.listB[i].attribute_name"
-func (sa *StructAttribute) FullName() (name string) {
-	if len(sa.Parents) == 0 {
-		return GetJSONTagValue(sa.Field)
+//	sa.assignName(parents...) // -> "parentA.listB[i].attribute_name"
+func (sa *StructAttribute) assignName(parents ...StructAttribute) string {
+	if len(parents) < 1 {
+		sa.name = helpers.PointerTo(GetJSONTagValue(sa.Field))
+		return *sa.name
 	}
 
-	scope := sa.Parents[len(sa.Parents)-1].FullName()
+	scope := parents[len(parents)-1].FullName()
 
 	// Adds the array notation to the slice/array field
 	if sa.ListPosition >= 0 {
@@ -54,14 +58,19 @@ func (sa *StructAttribute) FullName() (name string) {
 	}
 
 	if sa.isPrimitive {
-		return scope
+		sa.name = helpers.PointerTo(scope)
+		return *sa.name
 	}
 
 	fullName := strings.Join([]string{scope, GetJSONTagValue(sa.Field)}, ".")
 
-	// Ensures field name is never prefixed by a dot (.)
-	return strings.TrimSuffix(strings.TrimPrefix(fullName, "."), ".")
+	// Ensures field name is never prefixed or suffixed by a dot (.)
+	sa.name = helpers.PointerTo(strings.TrimSuffix(strings.TrimPrefix(fullName, "."), "."))
+
+	return *sa.name
 }
+
+func (sa *StructAttribute) FullName() string { return *sa.name }
 
 func (sa *StructAttribute) SkipsPastLastChild() int {
 	if len(sa.Children) == 0 {
@@ -77,12 +86,15 @@ func (sa *StructAttribute) SkipsPastLastChild() int {
 }
 
 func NewStructAttribute(args NewStructAttributeFields) *StructAttribute {
-	return &StructAttribute{
+	sa := &StructAttribute{
 		Value:        args.Value,
 		Field:        args.Field,
-		Parents:      args.Parents,
 		Children:     args.Children,
 		ListPosition: args.ListPosition,
 		isPrimitive:  args.IsPrimitive,
 	}
+
+	sa.assignName(args.Parents...)
+
+	return sa
 }

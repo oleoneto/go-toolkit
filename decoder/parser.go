@@ -304,12 +304,12 @@ func getAttributes(rv reflect.Value, parents []StructAttribute, filterTags, igno
 		// Struct field definition
 		rsf := rv.Type().Field(position)
 
-		sa := StructAttribute{
+		sa := *NewStructAttribute(NewStructAttributeFields{
 			Value:        value,
 			Field:        rsf,
 			Parents:      parents,
 			ListPosition: currentIndex,
-		}
+		})
 
 		// Do not include an anonymous field at the top level.
 		// Only include its inner fields.
@@ -356,12 +356,12 @@ func getAttributes(rv reflect.Value, parents []StructAttribute, filterTags, igno
 				el := value.Index(l)
 
 				if isListOfPrimitives {
-					child := StructAttribute{
+					child := *NewStructAttribute(NewStructAttributeFields{
 						Value:        el,
 						Parents:      newParents,
 						ListPosition: l,
-						isPrimitive:  true,
-					}
+						IsPrimitive:  true,
+					})
 
 					// Copy information from parent StructField
 					child.Field = reflect.StructField{

@@ -7,13 +7,13 @@ import (
 	"github.com/oleoneto/go-toolkit/decoder"
 )
 
-func TestStructAttribute_SkipsPastLastChild(t *testing.T) {
+func Test_StructAttribute_SkipsPastLastChild(t *testing.T) {
 	type fields struct {
-		Value        reflect.Value
-		Field        reflect.StructField
-		Parents      []decoder.StructAttribute
-		Children     []decoder.StructAttribute
-		ListPosition int
+		value        reflect.Value
+		field        reflect.StructField
+		parents      []decoder.StructAttribute
+		children     []decoder.StructAttribute
+		listPosition int
 		isPrimitive  bool
 	}
 	tests := []struct {
@@ -24,14 +24,14 @@ func TestStructAttribute_SkipsPastLastChild(t *testing.T) {
 		{
 			name: "test - 1",
 			fields: fields{
-				Children: []decoder.StructAttribute{},
+				children: []decoder.StructAttribute{},
 			},
 			want: 0,
 		},
 		{
 			name: "test - 2",
 			fields: fields{
-				Children: []decoder.StructAttribute{{}},
+				children: []decoder.StructAttribute{{}},
 			},
 			want: 3,
 		},
@@ -39,11 +39,11 @@ func TestStructAttribute_SkipsPastLastChild(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			sa := decoder.NewStructAttribute(decoder.NewStructAttributeFields{
-				Value:        tt.fields.Value,
-				Field:        tt.fields.Field,
-				Parents:      tt.fields.Parents,
-				Children:     tt.fields.Children,
-				ListPosition: tt.fields.ListPosition,
+				Value:        tt.fields.value,
+				Field:        tt.fields.field,
+				Parents:      tt.fields.parents,
+				Children:     tt.fields.children,
+				ListPosition: tt.fields.listPosition,
 				IsPrimitive:  tt.fields.isPrimitive,
 			})
 
